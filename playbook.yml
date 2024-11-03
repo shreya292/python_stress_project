@@ -1,0 +1,204 @@
+---
+- name: Install Monitoring and CI/CD Tools
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install necessary packages
+      apt:
+        name:
+          - curl
+          - wget
+          - unzip
+          - software-properties-common
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install necessary packages for RHEL/CentOS
+      yum:
+        name:
+          - curl
+          - wget
+          - unzip
+          - epel-release
+        state: present
+      when: ansible_os_family == "RedHat"
+
+- name: Install Prometheus and Alertmanager
+  hosts: 192.168.0.112
+  become: yes
+  tasks:
+    - name: Download Prometheus
+      get_url:
+        url: https://github.com/prometheus/prometheus/releases/latest/download/prometheus-*.tar.gz
+        dest: /tmp/prometheus.tar.gz
+
+    - name: Extract Prometheus
+      unarchive:
+        src: /tmp/prometheus.tar.gz
+        dest: /opt/prometheus
+        remote_src: yes
+
+    - name: Move Prometheus binaries
+      command: mv /opt/prometheus/{prometheus,promtool} /usr/local/bin/
+      args:
+        removes: /usr/local/bin/prometheus
+
+    - name: Create Prometheus configuration directory
+      file:
+        path: /etc/prometheus
+        state: directory
+
+    - name: Create Prometheus configuration file
+      copy:
+        dest: /etc/prometheus/prometheus.yml
+        content: |
+          global:
+            scrape_interval: 15s
+
+          scrape_configs:
+            - job_name: 'node_exporter'
+              static_configs:
+                - targets: ['192.168.0.104:9100']
+
+            - job_name: 'mysql_exporter'
+              static_configs:
+                - targets: ['192.168.0.104:9104']
+
+    - name: Download Alertmanager
+      get_url:
+        url: https://github.com/prometheus/alertmanager/releases/latest/download/alertmanager-*.tar.gz
+        dest: /tmp/alertmanager.tar.gz
+
+    - name: Extract Alertmanager
+      unarchive:
+        src: /tmp/alertmanager.tar.gz
+        dest: /opt/alertmanager
+        remote_src: yes
+
+    - name: Move Alertmanager binaries
+      command: mv /opt/alertmanager/{alertmanager,amtool} /usr/local/bin/
+      args:
+        removes: /usr/local/bin/alertmanager
+
+- name: Install Grafana
+  hosts: 192.168.0.112
+  become: yes
+  tasks:
+    - name: Install Grafana
+      apt:
+        name: grafana
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Grafana
+      yum:
+        name: grafana
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Enable and start Grafana
+      systemd:
+        name: grafana-server
+        enabled: yes
+        state: started
+
+- name: Install Jenkins
+  hosts: 192.168.0.112
+  become: yes
+  tasks:
+    - name: Add Jenkins repo
+      apt_repository:
+        repo: deb http://pkg.jenkins.io/debian-stable binary/
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Jenkins
+      yum:
+        name: jenkins
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Start and enable Jenkins
+      systemd:
+        name: jenkins
+        enabled: yes
+        state: started
+
+- name: Install Node Exporter and MySQL Exporter
+  hosts: 192.168.0.104
+  become: yes
+  tasks:
+    - name: Download Node Exporter
+      get_url:
+        url: https://github.com/prometheus/node_exporter/releases/latest/download/node_exporter-*.tar.gz
+        dest: /tmp/node_exporter.tar.gz
+
+    - name: Extract Node Exporter
+      unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /opt/node_exporter
+        remote_src: yes
+
+    - name: Move Node Exporter binaries
+      command: mv /opt/node_exporter/node_exporter /usr/local/bin/
+      args:
+        removes: /usr/local/bin/node_exporter
+
+    - name: Download MySQL Exporter
+      get_url:
+        url: https://github.com/prometheus/mysqld_exporter/releases/latest/download/mysqld_exporter-*.tar.gz
+        dest: /tmp/mysql_exporter.tar.gz
+
+    - name: Extract MySQL Exporter
+      unarchive:
+        src: /tmp/mysql_exporter.tar.gz
+        dest: /opt/mysql_exporter
+        remote_src: yes
+
+    - name: Move MySQL Exporter binaries
+      command: mv /opt/mysql_exporter/mysqld_exporter /usr/local/bin/
+      args:
+        removes: /usr/local/bin/mysqld_exporter
+
+- name: Install Python
+  hosts: 192.168.0.104
+  become: yes
+  tasks:
+    - name: Install Python
+      apt:
+        name: python3
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Python
+      yum:
+        name: python3
+        state: present
+      when: ansible_os_family == "RedHat"
+
+- name: Install MySQL Server
+  hosts: 192.168.0.111
+  become: yes
+  tasks:
+    - name: Install MySQL Server
+      apt:
+        name: mysql-server
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install MySQL Server
+      yum:
+        name: mysql-server
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Start and enable MySQL
+      systemd:
+        name: mysqld
+        enabled: yes
