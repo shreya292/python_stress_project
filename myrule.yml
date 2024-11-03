@@ -1,0 +1,49 @@
+groups:
+  - name: resource_alerts
+    rules:
+      - alert: MemoryUsageHigh
+        expr: ((node_memory_Active_bytes / node_memory_MemTotal_bytes) * 100) > 80
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Memory Usage Alert"
+          description: "Memory usage has exceeded the threshold of 80%. Current usage is at {{ $value }}%."
+
+      - alert: DiskUsageHigh
+        expr: (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"}) * 100) > 80
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk Usage Alert"
+          description: "Disk usage has exceeded the threshold of 80%. Current usage is at {{ $value }}%."
+
+      - alert: CPUUsageHigh
+        expr: ((1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) * 100) > 80
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CPU Usage Alert"
+          description: "CPU usage has exceeded the threshold of 80%. Current usage is at {{ $value }}%."
+
+      - alert: NetworkUsageHigh
+        expr: ((rate(node_network_transmit_bytes_total[1m]) + rate(node_network_receive_bytes_total[1m])) / (1024 * 1024)) > 20
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Network Usage Alert"
+          description: "Network usage has exceeded the threshold of 80 MB."
+
+  - name: mysql_alerts
+    rules:
+      - alert: HighMySQLCPUUsage
+        expr: irate(mysql_global_status_queries{instance="192.168.0.104:9104"}[5m]) > 5.0
+        for: 1s  # Alert will trigger if the condition is met for 1 second
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU usage detected for mysqld_exporter"
+          description: "The process_cpu_seconds_total for mysqld_exporter has exceeded 1.0 for the last 1 second."
