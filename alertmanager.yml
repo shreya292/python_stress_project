@@ -1,0 +1,26 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'shreyabarnwal292@gmail.com'
+  smtp_auth_username: 'barnwalshreya143@gmail.com'
+  smtp_auth_password: 'scwq powp xqje jclg'
+  smtp_require_tls: true
+route:
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+    #receiver: 'web.hook'
+  receiver: 'email_notifications'
+receivers:
+  #- name: 'web.hook'
+  - name: 'email_notifications'
+    webhook_configs:
+      - url: 'http://127.0.0.1:5001/'
+    email_configs:
+      - to: 'barnwalshreya143@gmail.com'
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']
