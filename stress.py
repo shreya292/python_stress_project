@@ -1,7 +1,7 @@
 import os,subprocess
 import logging
 # Logging configuration
-#logging.basicConfig( filename="/root/stress_test.log", level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S" )
+#logging.basicConfig( filename="/root/stress_test.log", level=logging.INFO, form                                                                                                             at="%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S" )
 def memory_stress_test():
     print("Starting Memory Stress Test...")
     # Running memory stress test with stress-ng
@@ -19,7 +19,7 @@ def disk_stress_test():
 def network_stress_test():
     print("Starting Network Stress Test...")
     # Assuming iperf3 server is running on vm_2 with IP 192.168.29.49
-    result = subprocess.run(['iperf3', '-c', '192.168.1.5', '-t', '30'], capture_output=True, text=True)
+    result = subprocess.run(['iperf3', '-c', '192.168.1.7', '-t', '30'], capture                                                                                                             _output=True, text=True)
     print(result.stdout)
     #os.system("stress-ng --net 4 --net-bytes  80M --timeout 60s")
     print("Network Stress Test Completed.")
@@ -52,7 +52,7 @@ def function():
     logging.info("Starting MySQL Stress Test...")
 
     # Replace 'your_vm2_ip' with the actual IP address of vm_2
-    vm2_ip = '192.168.1.5'  # Example IP address for vm_2
+    vm2_ip = '192.168.1.7'  # Example IP address for vm_2
 
     # Running sysbench for MySQL stress testing
     process = subprocess.Popen([
@@ -95,7 +95,7 @@ def main():
             break
         else:
             print("Invalid choice. Please try again.")
-        logging.basicConfig( filename="/root/stress_test.log", level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+        logging.basicConfig( filename="/root/stress_test.log", level=logging.INF                                                                                                             O, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"                                                                                                              )
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
